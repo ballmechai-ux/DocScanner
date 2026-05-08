@@ -8,8 +8,8 @@ jobs:
       - uses: actions/setup-java@v4
         with: {distribution: 'temurin', java-version: '17'}
       - uses: android-actions/setup-android@v3
-      - run: chmod +x gradlew
-      - run:./gradlew assembleDebug
+      - uses: gradle/gradle-build-action@v2
+      - run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: DocScanner.apk
