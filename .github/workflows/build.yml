@@ -2,7 +2,8 @@ name: Build APK
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -10,8 +11,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -35,9 +38,11 @@ jobs:
         with:
           name: DocScanner-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Commit project files
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
           git add .
-          git commit -m "Add full project structure" || echo "Nothing to commit"
+          git commit -m "Auto update" || echo "Nothing to commit"
           git push
