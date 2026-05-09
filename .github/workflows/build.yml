@@ -26,7 +26,16 @@ jobs:
 
       - name: Generate Gradle Wrapper
         run: |
-          gradle wrapper --gradle-version 8.4 --distribution-type bin
+          cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          EOF
+          
+          curl -L https://services.gradle.org/distributions/gradle-8.4-bin.zip -o gradle-8.4-bin.zip
+          unzip -p gradle-8.4-bin.zip gradle-8.4/lib/plugins/gradle-wrapper-*.jar > gradle/wrapper/gradle-wrapper.jar
           chmod +x gradlew
 
       - name: Fix settings.gradle
