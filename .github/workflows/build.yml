@@ -21,18 +21,17 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle Wrapper
+      - name: Install Gradle 8.4
         run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip
+          unzip -q gradle-8.4-bin.zip
+          export GRADLE_HOME=$PWD/gradle-8.4
+          export PATH=$GRADLE_HOME/bin:$PATH
           mkdir -p gradle/wrapper
-          cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
-          distributionBase=GRADLE_USER_HOME
-          distributionPath=wrapper/dists
-          distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip
-          zipStoreBase=GRADLE_USER_HOME
-          zipStorePath=wrapper/dists
-          EOF
-          curl -sL https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+          gradle wrapper --gradle-version 8.4 --distribution-type bin
           chmod +x gradlew
+        env:
+          PATH: ${{ env.PATH }}
 
       - name: Fix settings.gradle
         run: |
@@ -105,25 +104,19 @@ jobs:
       - name: Fix resources
         run: |
           mkdir -p app/src/main/res/values
-
           cat > app/src/main/res/values/strings.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <string name="app_name">DocScanner</string>
           </resources>
           EOF
-
           cat > app/src/main/res/values/colors.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <color name="colorPrimary">#4FC3F7</color>
-              <color name="colorPrimaryDark">#0288D1</color>
-              <color name="colorAccent">#4FC3F7</color>
               <color name="black">#FF000000</color>
               <color name="white">#FFFFFFFF</color>
           </resources>
           EOF
-
           cat > app/src/main/res/values/themes.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
@@ -138,23 +131,18 @@ jobs:
               </style>
           </resources>
           EOF
-
           cat > app/src/main/AndroidManifest.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.CAMERA" />
-              <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-                  android:maxSdkVersion="28" />
-              <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-                  android:maxSdkVersion="32" />
+              <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+              <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
               <application
                   android:allowBackup="true"
                   android:label="@string/app_name"
                   android:theme="@style/Theme.DocScanner"
                   android:supportsRtl="true">
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true">
+                  <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
                           <category android:name="android.intent.category.LAUNCHER" />
@@ -170,7 +158,6 @@ jobs:
       - name: Fix layout files
         run: |
           mkdir -p app/src/main/res/layout
-
           cat > app/src/main/res/layout/activity_main.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -225,7 +212,6 @@ jobs:
                   app:backgroundTint="#4FC3F7" />
           </androidx.coordinatorlayout.widget.CoordinatorLayout>
           EOF
-
           cat > app/src/main/res/layout/activity_camera.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <FrameLayout
@@ -286,7 +272,6 @@ jobs:
               </LinearLayout>
           </FrameLayout>
           EOF
-
           cat > app/src/main/res/layout/activity_crop.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <FrameLayout
@@ -350,7 +335,6 @@ jobs:
       - name: Fix kotlin files
         run: |
           mkdir -p app/src/main/java/com/example/docscanner
-
           cat > app/src/main/java/com/example/docscanner/MainActivity.kt << 'EOF'
           package com.example.docscanner
           import android.content.Intent
@@ -367,7 +351,6 @@ jobs:
               }
           }
           EOF
-
           cat > app/src/main/java/com/example/docscanner/CameraActivity.kt << 'EOF'
           package com.example.docscanner
           import android.content.Intent
@@ -439,7 +422,6 @@ jobs:
               }
           }
           EOF
-
           cat > app/src/main/java/com/example/docscanner/CropActivity.kt << 'EOF'
           package com.example.docscanner
           import android.content.Intent
@@ -487,7 +469,6 @@ jobs:
               }
           }
           EOF
-
           cat > app/src/main/java/com/example/docscanner/CropOverlayView.kt << 'EOF'
           package com.example.docscanner
           import android.content.Context
@@ -567,7 +548,6 @@ jobs:
               fun getCropRect(): RectF = cropRect
           }
           EOF
-
           cat > app/src/main/java/com/example/docscanner/PreviewActivity.kt << 'EOF'
           package com.example.docscanner
           import android.os.Bundle
@@ -584,11 +564,14 @@ jobs:
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
           git add .
-          git commit -m "Fix all project files" || echo "Nothing to commit"
+          git commit -m "Fix gradle wrapper and all files" || echo "Nothing to commit"
           git push
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: |
+          export GRADLE_HOME=$PWD/gradle-8.4
+          export PATH=$GRADLE_HOME/bin:$PATH
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
