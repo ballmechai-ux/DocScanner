@@ -23,15 +23,11 @@ jobs:
 
       - name: Install Gradle 8.4
         run: |
-          wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip
+          curl -sL https://services.gradle.org/distributions/gradle-8.4-bin.zip -o gradle-8.4-bin.zip
           unzip -q gradle-8.4-bin.zip
-          export GRADLE_HOME=$PWD/gradle-8.4
-          export PATH=$GRADLE_HOME/bin:$PATH
           mkdir -p gradle/wrapper
-          gradle wrapper --gradle-version 8.4 --distribution-type bin
+          ./gradle-8.4/bin/gradle wrapper --gradle-version 8.4 --distribution-type bin
           chmod +x gradlew
-        env:
-          PATH: ${{ env.PATH }}
 
       - name: Fix settings.gradle
         run: |
@@ -564,14 +560,11 @@ jobs:
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
           git add .
-          git commit -m "Fix gradle wrapper and all files" || echo "Nothing to commit"
+          git commit -m "Fix gradle and all files" || echo "Nothing to commit"
           git push
 
       - name: Build Debug APK
-        run: |
-          export GRADLE_HOME=$PWD/gradle-8.4
-          export PATH=$GRADLE_HOME/bin:$PATH
-          ./gradlew assembleDebug
+        run: ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
