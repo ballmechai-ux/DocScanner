@@ -1,4 +1,4 @@
-name: Build APK
+name: Android APK Build
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -19,8 +19,15 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Grant permission
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Create gradle wrapper
+        run: |
+          gradle wrapper
+
+      - name: Grant execute permission
+        run: chmod +x ./gradlew
 
       - name: Build APK
         run: ./gradlew assembleDebug
