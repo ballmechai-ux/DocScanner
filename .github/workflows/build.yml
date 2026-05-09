@@ -4,11 +4,16 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create project structure
         run: |
@@ -17,7 +22,6 @@ jobs:
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/res/mipmap-hdpi
 
-          # AndroidManifest.xml
           cat > app/src/main/AndroidManifest.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -41,7 +45,6 @@ jobs:
           </manifest>
           EOF
 
-          # themes.xml
           cat > app/src/main/res/values/themes.xml << 'EOF'
           <resources>
               <style name="Theme.DocScanner" parent="Theme.Material3.Dark">
@@ -56,14 +59,12 @@ jobs:
           </resources>
           EOF
 
-          # strings.xml
           cat > app/src/main/res/values/strings.xml << 'EOF'
           <resources>
               <string name="app_name">DocScanner</string>
           </resources>
           EOF
 
-          # activity_main.xml
           cat > app/src/main/res/layout/activity_main.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -104,8 +105,7 @@ jobs:
                   <androidx.recyclerview.widget.RecyclerView
                       android:id="@+id/recyclerView"
                       android:layout_width="match_parent"
-                      android:layout_height="0dp"
-                      android:layout_weight="1"
+                      android:layout_height="wrap_content"
                       android:visibility="gone" />
               </LinearLayout>
               <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
@@ -120,11 +120,11 @@ jobs:
           </androidx.coordinatorlayout.widget.CoordinatorLayout>
           EOF
 
-          # activity_camera.xml
           cat > app/src/main/res/layout/activity_camera.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <FrameLayout
               xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="#000000">
@@ -181,7 +181,6 @@ jobs:
           </FrameLayout>
           EOF
 
-          # activity_crop.xml
           cat > app/src/main/res/layout/activity_crop.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <FrameLayout
@@ -242,7 +241,6 @@ jobs:
           </FrameLayout>
           EOF
 
-          # MainActivity.kt
           cat > app/src/main/java/com/example/docscanner/MainActivity.kt << 'EOF'
           package com.example.docscanner
           import android.content.Intent
@@ -253,15 +251,13 @@ jobs:
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
                   setContentView(R.layout.activity_main)
-                  val fabScan = findViewById<ExtendedFloatingActionButton>(R.id.fabScan)
-                  fabScan.setOnClickListener {
+                  findViewById<ExtendedFloatingActionButton>(R.id.fabScan).setOnClickListener {
                       startActivity(Intent(this, CameraActivity::class.java))
                   }
               }
           }
           EOF
 
-          # CameraActivity.kt
           cat > app/src/main/java/com/example/docscanner/CameraActivity.kt << 'EOF'
           package com.example.docscanner
           import android.content.Intent
@@ -304,8 +300,7 @@ jobs:
                           it.setSurfaceProvider(previewView.surfaceProvider)
                       }
                       imageCapture = ImageCapture.Builder()
-                          .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
-                          .build()
+                          .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY).build()
                       provider.unbindAll()
                       provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture)
                   }, ContextCompat.getMainExecutor(this))
@@ -335,7 +330,6 @@ jobs:
           }
           EOF
 
-          # CropActivity.kt
           cat > app/src/main/java/com/example/docscanner/CropActivity.kt << 'EOF'
           package com.example.docscanner
           import android.content.Intent
@@ -384,7 +378,6 @@ jobs:
           }
           EOF
 
-          # CropOverlayView.kt
           cat > app/src/main/java/com/example/docscanner/CropOverlayView.kt << 'EOF'
           package com.example.docscanner
           import android.content.Context
@@ -465,7 +458,6 @@ jobs:
           }
           EOF
 
-          # app/build.gradle
           cat > app/build.gradle << 'EOF'
           plugins {
               id 'com.android.application'
