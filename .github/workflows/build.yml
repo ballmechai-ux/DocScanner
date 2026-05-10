@@ -29,8 +29,14 @@ jobs:
           /tmp/gradle-8.4/bin/gradle wrapper --gradle-version 8.4 --distribution-type bin
           chmod +x gradlew
 
-      - name: Fix settings.gradle
+      - name: Fix all project files
         run: |
+          cat > gradle.properties << 'EOF'
+          android.useAndroidX=true
+          android.enableJetifier=true
+          org.gradle.jvmargs=-Xmx2048m
+          EOF
+
           cat > settings.gradle << 'EOF'
           pluginManagement {
               repositories {
@@ -50,8 +56,6 @@ jobs:
           include ':app'
           EOF
 
-      - name: Fix root build.gradle
-        run: |
           cat > build.gradle << 'EOF'
           plugins {
               id 'com.android.application' version '8.1.0' apply false
@@ -59,8 +63,6 @@ jobs:
           }
           EOF
 
-      - name: Fix app/build.gradle
-        run: |
           cat > app/build.gradle << 'EOF'
           plugins {
               id 'com.android.application'
@@ -97,8 +99,6 @@ jobs:
           }
           EOF
 
-      - name: Fix resources
-        run: |
           mkdir -p app/src/main/res/values
           cat > app/src/main/res/values/strings.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -106,6 +106,7 @@ jobs:
               <string name="app_name">DocScanner</string>
           </resources>
           EOF
+
           cat > app/src/main/res/values/colors.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
@@ -116,6 +117,7 @@ jobs:
               <color name="colorSurface">#1E1E1E</color>
           </resources>
           EOF
+
           cat > app/src/main/res/values/themes.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
@@ -131,6 +133,7 @@ jobs:
               </style>
           </resources>
           EOF
+
           cat > app/src/main/AndroidManifest.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -155,8 +158,6 @@ jobs:
           </manifest>
           EOF
 
-      - name: Fix layout files
-        run: |
           mkdir -p app/src/main/res/layout
           cat > app/src/main/res/layout/activity_main.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -212,6 +213,7 @@ jobs:
                   app:backgroundTint="#4FC3F7" />
           </androidx.coordinatorlayout.widget.CoordinatorLayout>
           EOF
+
           cat > app/src/main/res/layout/activity_camera.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <FrameLayout
@@ -272,6 +274,7 @@ jobs:
               </LinearLayout>
           </FrameLayout>
           EOF
+
           cat > app/src/main/res/layout/activity_crop.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <FrameLayout
@@ -332,8 +335,6 @@ jobs:
           </FrameLayout>
           EOF
 
-      - name: Fix kotlin files
-        run: |
           mkdir -p app/src/main/java/com/example/docscanner
           cat > app/src/main/java/com/example/docscanner/MainActivity.kt << 'EOF'
           package com.example.docscanner
@@ -351,6 +352,7 @@ jobs:
               }
           }
           EOF
+
           cat > app/src/main/java/com/example/docscanner/CameraActivity.kt << 'EOF'
           package com.example.docscanner
           import android.content.Intent
@@ -422,6 +424,7 @@ jobs:
               }
           }
           EOF
+
           cat > app/src/main/java/com/example/docscanner/CropActivity.kt << 'EOF'
           package com.example.docscanner
           import android.content.Intent
@@ -469,6 +472,7 @@ jobs:
               }
           }
           EOF
+
           cat > app/src/main/java/com/example/docscanner/CropOverlayView.kt << 'EOF'
           package com.example.docscanner
           import android.content.Context
@@ -548,6 +552,7 @@ jobs:
               fun getCropRect(): RectF = cropRect
           }
           EOF
+
           cat > app/src/main/java/com/example/docscanner/PreviewActivity.kt << 'EOF'
           package com.example.docscanner
           import android.os.Bundle
@@ -563,8 +568,8 @@ jobs:
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
-          git add gradle/ gradlew settings.gradle build.gradle app/
-          git commit -m "Fix all files" || echo "Nothing to commit"
+          git add gradle/ gradlew settings.gradle build.gradle gradle.properties app/
+          git commit -m "Fix all files with AndroidX" || echo "Nothing to commit"
           git push --force
 
       - name: Build Debug APK
