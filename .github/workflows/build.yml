@@ -23,11 +23,22 @@ jobs:
 
       - name: Install Gradle 8.4
         run: |
-          curl -sL https://services.gradle.org/distributions/gradle-8.4-bin.zip -o gradle-8.4-bin.zip
-          unzip -q gradle-8.4-bin.zip
+          curl -sL https://services.gradle.org/distributions/gradle-8.4-bin.zip -o /tmp/gradle-8.4-bin.zip
+          unzip -q /tmp/gradle-8.4-bin.zip -d /tmp/
           mkdir -p gradle/wrapper
-          ./gradle-8.4/bin/gradle wrapper --gradle-version 8.4 --distribution-type bin
+          /tmp/gradle-8.4/bin/gradle wrapper --gradle-version 8.4 --distribution-type bin
           chmod +x gradlew
+
+      - name: Fix gitignore
+        run: |
+          cat > .gitignore << 'EOF'
+          *.zip
+          *.jar
+          !gradle/wrapper/gradle-wrapper.jar
+          .gradle/
+          build/
+          local.properties
+          EOF
 
       - name: Fix settings.gradle
         run: |
@@ -559,8 +570,14 @@ jobs:
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
-          git add .
-          git commit -m "Fix gradle and all files" || echo "Nothing to commit"
+          git rm -r --cached . -f 2>/dev/null || true
+          git add .gitignore
+          git add gradle/
+          git add gradlew
+          git add settings.gradle
+          git add build.gradle
+          git add app/
+          git commit -m "Fix large files and rebuild" || echo "Nothing to commit"
           git push
 
       - name: Build Debug APK
