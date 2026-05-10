@@ -1,0 +1,6 @@
+*.zip
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+.gradle/
+build/
+local.properties
